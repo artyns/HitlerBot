@@ -6,6 +6,16 @@ import logging
 import traceback
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from threading import Thread
+import requests
+from time import sleep
+
+app = Flask(__name__)
+
+app.route("/ping")
+def ping():
+    return "pong"
+
 
 # -------------------------------
 # تنظیمات اولیه
@@ -344,6 +354,22 @@ async def callback_handler(call):
 async def main():
     print("Bot is running...")
     await bot.infinity_polling()
+
+
+
+def keep_alive():
+    while True:
+        url = os.getenv("RENDER_EXTERNAL_URL", "https://giftybot.onrender.com")
+        response = requests.get(f"{url}/ping", timeout=10)
+        sleep(300) 
+
+
+
+def run_flask():
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+Thread(target=keep_alive).start()
+Thread(target=run_flask).start()
 
 if __name__ == "__main__":
     asyncio.run(main())
